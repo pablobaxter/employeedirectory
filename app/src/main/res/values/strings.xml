@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">squarechallenge</string>
+    <string name="empty_message">No data found</string>
+    <string name="error_message">Error loading data. Please try again later.</string>
+</resources>
