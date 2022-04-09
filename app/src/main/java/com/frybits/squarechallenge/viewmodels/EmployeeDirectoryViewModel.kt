@@ -16,7 +16,7 @@ private const val LOG_TAG = "EmployeeDirectoryViewModel"
 class EmployeeDirectoryViewModel @Inject constructor(
     private val employeeDataRepository: EmployeeDataRepository,
     private val employeeImageRepository: EmployeeImageRepository
-): ViewModel() {
+) : ViewModel() {
 
     suspend fun getEmployees(refresh: Boolean = false): Result<EmployeeDataList> {
         return employeeDataRepository.getEmployeeDataList(refresh).onFailure {

@@ -62,14 +62,13 @@ class EmployeeImageRepositoryImpl @Inject constructor(
                 ImageType.LARGE -> URI(employeeData.photo_url_large)
             }
             val imageId = imgUrl.path.dropWhile { it == '/' }.replace('/', '_')
-            val key = "${employeeData.uuid}${imageId}"
-            val bitmap = imageCache.retrieveImage(key)
+            val bitmap = imageCache.retrieveImage(imageId)
             if (bitmap == null) {
                 Log.d(LOG_TAG, "Image cache miss, getting image from network...")
                 val response = employeeApi.getEmployeeImage(imgUrl.toString())
                 val networkBitmap = BitmapFactory.decodeStream(response.byteStream())
-                imageCache.storeImage(key, networkBitmap)
-                Log.d(LOG_TAG, "Got image from network and stored in cache. Key=$key")
+                imageCache.storeImage(imageId, networkBitmap)
+                Log.d(LOG_TAG, "Got image from network and stored in cache. Key=$imageId")
                 return@runCatching networkBitmap
             }
             return@runCatching bitmap

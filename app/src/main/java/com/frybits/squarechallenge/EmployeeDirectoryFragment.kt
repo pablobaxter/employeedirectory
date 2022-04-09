@@ -79,7 +79,10 @@ class EmployeeDirectoryFragment : Fragment() {
         messageTextView.visibility = View.GONE
     }
 
-    private suspend fun FragmentEmployeeDirectoryBinding.loadDataInto(adapter: EmployeeAdapter, refresh: Boolean) {
+    private suspend fun FragmentEmployeeDirectoryBinding.loadDataInto(
+        adapter: EmployeeAdapter,
+        refresh: Boolean
+    ) {
         employeeDirectoryViewModel.getEmployees(refresh).onFailure {
             messageTextView.visibility = View.VISIBLE
             messageTextView.setText(R.string.error_message)

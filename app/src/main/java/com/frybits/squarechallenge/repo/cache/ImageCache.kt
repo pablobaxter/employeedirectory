@@ -72,12 +72,15 @@ class ImageCacheImpl @Inject constructor(@ApplicationContext context: Context) :
             return@withContext bitmapMemoryCache[key] ?: try {
                 // Memory cache miss...
                 Log.d(LOG_TAG, "Memory cache miss, attempting disk...")
-                withContext(Dispatchers.IO) {
+                val bitmap = withContext(Dispatchers.IO) {
                     ensureDirectoryCreated()
                     File(diskCacheFolder, key).inputStream().buffered().use { inputStream ->
                         BitmapFactory.decodeStream(inputStream)
                     }
                 }
+                // Put image into cache
+                bitmapMemoryCache.put(key, bitmap)
+                return@withContext bitmap
             } catch (e: Exception) { // Disk errors should be considered disk cache misses. Just return null.
                 Log.e(LOG_TAG, "Unable to retrieve image from disk", e)
                 null
