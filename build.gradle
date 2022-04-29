@@ -18,6 +18,9 @@ buildscript {
         // Networking
         retrofitVersion = '2.9.0'
 
+        // Persistance
+        room_version = "2.4.2"
+
         // Serialization
         kotlinSerializerVersion = '1.3.2'
         retrofitKotlinSerializerVersion = '0.8.0'

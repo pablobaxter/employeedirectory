@@ -26,3 +26,21 @@ data class EmployeeData(
 enum class EmployeeType {
     FULL_TIME, PART_TIME, CONTRACTOR
 }
+
+fun EmployeeEntity.toEmployeeData(): EmployeeData {
+    return EmployeeData(
+        uuid = uuid,
+        full_name = full_name,
+        phone_number = phone_number,
+        email_address = email_address,
+        biography = biography,
+        photo_url_small = photo_url_small,
+        photo_url_large = photo_url_large,
+        team = team,
+        employee_type = enumValueOf(employee_type)
+    )
+}
+
+fun List<EmployeeEntity>.toEmployees(): List<EmployeeData> {
+    return map { it.toEmployeeData() }
+}

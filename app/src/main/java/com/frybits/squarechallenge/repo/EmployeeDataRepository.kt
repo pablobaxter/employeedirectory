@@ -2,6 +2,9 @@ package com.frybits.squarechallenge.repo
 
 import android.util.Log
 import com.frybits.squarechallenge.models.EmployeeDataList
+import com.frybits.squarechallenge.models.toEmployeeEntities
+import com.frybits.squarechallenge.models.toEmployees
+import com.frybits.squarechallenge.repo.cache.EmployeeDao
 import com.frybits.squarechallenge.repo.networking.EmployeeApi
 import dagger.Binds
 import dagger.Module
@@ -10,6 +13,7 @@ import dagger.hilt.android.components.ViewModelComponent
 import dagger.hilt.android.scopes.ViewModelScoped
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 private const val LOG_TAG = "EmployeeDataRepository"
@@ -26,11 +30,9 @@ interface EmployeeDataRepository {
 }
 
 class EmployeeDataRepositoryImpl @Inject constructor(
-    private val employeeApi: EmployeeApi
+    private val employeeApi: EmployeeApi,
+    private val employeeDao: EmployeeDao
 ) : EmployeeDataRepository {
-
-    @Volatile // Using volatile to ensure we are storing and reading from main memory
-    private var inMemoryEmployeeDataList: EmployeeDataList? = null // Store the network result in-memory
 
     // Prevents multiple coroutines from making the same network call if one is already in flight
     private val mutex = Mutex()
@@ -38,12 +40,17 @@ class EmployeeDataRepositoryImpl @Inject constructor(
     override suspend fun getEmployeeDataList(forceNetwork: Boolean): Result<EmployeeDataList> {
         return runCatching {
             mutex.withLock {
-                if (forceNetwork) {
-                    inMemoryEmployeeDataList = null // If we are forcing the network, clear in-memory cache
-                }
-                return@withLock inMemoryEmployeeDataList ?: employeeApi.getEmployeeDataList().also {
-                    Log.d(LOG_TAG, "Retrieved employee list from network")
-                    inMemoryEmployeeDataList = it
+                val employeeEntities = employeeDao.getAllEmployees()
+                val now = System.currentTimeMillis()
+                if (employeeEntities.isEmpty() || employeeEntities.any { 
+                        (now - it.fetch_time) > TimeUnit.SECONDS.toMillis(30)
+                }) {
+                    return@withLock employeeApi.getEmployeeDataList().also {
+                        Log.d(LOG_TAG, "Retrieved employee list from network")
+                        employeeDao.insertAll(it.employees.toEmployeeEntities())
+                    }
+                } else {
+                    return Result.success(EmployeeDataList(employeeEntities.toEmployees()))
                 }
             }
         }
